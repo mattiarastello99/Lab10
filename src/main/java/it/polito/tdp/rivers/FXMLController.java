@@ -8,6 +8,8 @@ import java.net.URL;
 import java.util.ResourceBundle;
 
 import it.polito.tdp.rivers.model.Model;
+import it.polito.tdp.rivers.model.River;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
@@ -17,6 +19,7 @@ import javafx.scene.control.TextField;
 public class FXMLController {
 	
 	private Model model;
+	
 
     @FXML // ResourceBundle that was given to the FXMLLoader
     private ResourceBundle resources;
@@ -25,7 +28,7 @@ public class FXMLController {
     private URL location;
 
     @FXML // fx:id="boxRiver"
-    private ComboBox<?> boxRiver; // Value injected by FXMLLoader
+    private ComboBox<River> boxRiver; // Value injected by FXMLLoader
 
     @FXML // fx:id="txtStartDate"
     private TextField txtStartDate; // Value injected by FXMLLoader
@@ -47,6 +50,43 @@ public class FXMLController {
 
     @FXML // fx:id="txtResult"
     private TextArea txtResult; // Value injected by FXMLLoader
+    
+    @FXML
+    void sceltaCombo(ActionEvent event) {
+
+    	River r = boxRiver.getValue();
+    	if(r!=null) {
+    		model.calcola(r);
+    	
+    		this.txtStartDate.setText(r.getDataMin().toString());
+    		this.txtEndDate.setText(r.getDataMax().toString());
+    		this.txtFMed.setText("" + r.getFlowAvg());
+    		this.txtNumMeasurements.setText("" + r.getFlows().size());
+    	}
+    	
+    }
+
+    @FXML
+    void simula(ActionEvent event) {
+    	
+    	String s = txtK.getText();
+    	
+    	try {
+    		double k = Double.parseDouble(s);
+    		River r = boxRiver.getValue();
+    		model.calcolaSimulazione(k, r);
+    		txtResult.clear();
+    		txtResult.appendText("La media del bacino è: "+model.getMediaSim());
+    		txtResult.appendText("\nIl numero di giorni senza irrigazione è : "+model.getNumSim());
+    		
+    		
+    	}catch(NumberFormatException e) {
+    		txtResult.appendText("Non hai inserito una k valida");
+    	}
+    	
+    	
+    	
+    }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
     void initialize() {
@@ -58,9 +98,13 @@ public class FXMLController {
         assert txtK != null : "fx:id=\"txtK\" was not injected: check your FXML file 'Scene.fxml'.";
         assert btnSimula != null : "fx:id=\"btnSimula\" was not injected: check your FXML file 'Scene.fxml'.";
         assert txtResult != null : "fx:id=\"txtResult\" was not injected: check your FXML file 'Scene.fxml'.";
+   
     }
     
     public void setModel(Model model) {
     	this.model = model;
+    	
+    	boxRiver.getItems().addAll(model.riverList());
+    	
     }
 }
